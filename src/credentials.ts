@@ -5,6 +5,12 @@ import * as Octokit from '@octokit/rest';
 const GITHUB_AUTH_PROVIDER_ID = 'github';
 // The GitHub Authentication Provider accepts the scopes described here:
 // https://developer.github.com/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/
+//
+// The `user` scope grants read/write access to public and private profile information
+// (including email addresses, followers, and billing data). It is broader than ideal,
+// but GitHub's billing API endpoint requires this full scope — the narrower `read:user`
+// scope is not sufficient. This extension only reads data and never modifies the user's
+// profile.
 const SCOPES = ['user'];
 
 export class Credentials {
@@ -17,10 +23,10 @@ export class Credentials {
 
 	private async setOctokit() {
 		/**
-		 * By passing the `createIfNone` flag, a numbered badge will show up on the accounts activity bar icon.
-		 * An entry for the sample extension will be added under the menu to sign in. This allows quietly 
-		 * prompting the user to sign in.
-		 * */
+		 * By passing `createIfNone: false`, the extension silently checks for an existing session
+		 * without prompting the user to sign in. The user is only asked to sign in when
+		 * `getOctokit()` is called with `createIfNone: true`.
+		 */
 		const session = await vscode.authentication.getSession(GITHUB_AUTH_PROVIDER_ID, SCOPES, { createIfNone: false });
 
 		if (session) {
