@@ -33,7 +33,18 @@
         "command": "codespaces-usage-monitor.refresh",
         "title": "Codespaces Usage Monitor: Refresh Free Hours"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Codespaces Usage Monitor",
+      "properties": {
+        "codespaces-usage-monitor.plan": {
+          "type": "string",
+          "enum": ["free", "pro"],
+          "default": "free",
+          "description": "Your GitHub plan type. Used to calculate how many Codespaces hours are included at no cost (free: 120 h/month, pro: 180 h/month). Change to 'pro' if you have GitHub Pro."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

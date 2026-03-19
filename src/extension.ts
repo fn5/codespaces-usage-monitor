@@ -13,26 +13,20 @@ export async function activate(context: vscode.ExtensionContext) {
 	myStatusBarItem.command = "codespaces-usage-monitor.refresh"
 	myStatusBarItem.tooltip = "Click to refresh"
 
-	let username: string;
-	let amountIncludedInPlan: number;
-
 	try {
 		// Octokit (https://github.com/octokit/rest.js#readme) is a library for making REST API calls to GitHub.
 		const octokit = await credentials.getOctokit();
 
-		//fetch user object of the authenticated user and destruct username and planName from it
-		const {
-			data: {
-				login: authenticatedUsername, // const username = data.login
-				plan: { name: planName } = { name: 'free' } // const planName = data.plan ? data.plan.name || data.plan.name = 'free'
-			}
-		} = await octokit.users.getAuthenticated();
+		// The username is read directly from the VS Code authentication session — no API call required.
+		const username = credentials.username!
 
-		username = authenticatedUsername;
+		// The plan type is read from VS Code settings (default: 'free').
+		// Users on GitHub Pro can change this to 'pro' in their settings.
+		const planName = vscode.workspace.getConfiguration('codespaces-usage-monitor').get<string>('plan', 'free')
 
 		// hardcode included core hours and core hour price as there is no way to fetch them with the API
 		const coreHourPrice = 0.09
-		amountIncludedInPlan = ({
+		const amountIncludedInPlan = ({
 			free: 120 * coreHourPrice,
 			pro: 180 * coreHourPrice
 		})[planName] || 0
