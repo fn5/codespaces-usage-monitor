@@ -5,10 +5,21 @@ import * as Octokit from '@octokit/rest';
 const GITHUB_AUTH_PROVIDER_ID = 'github';
 // The GitHub Authentication Provider accepts the scopes described here:
 // https://developer.github.com/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/
-const SCOPES = ['user'];
+//
+// `read:user` grants read-only access to a user's profile data.
+// This extension retrieves the username directly from the VS Code authentication
+// session (session.account.label) and reads the plan from VS Code settings,
+// so no API call to GET /user is needed. Only the billing usage endpoint is
+// called, and `read:user` is the narrowest classic OAuth scope that may satisfy it.
+const SCOPES = ['read:user'];
 
 export class Credentials {
 	private octokit: Octokit.Octokit | undefined;
+	private _username: string | undefined;
+
+	get username(): string | undefined {
+		return this._username;
+	}
 
 	async initialize(context: vscode.ExtensionContext): Promise<void> {
 		this.registerListeners(context);
@@ -17,21 +28,23 @@ export class Credentials {
 
 	private async setOctokit() {
 		/**
-		 * By passing the `createIfNone` flag, a numbered badge will show up on the accounts activity bar icon.
-		 * An entry for the sample extension will be added under the menu to sign in. This allows quietly 
-		 * prompting the user to sign in.
-		 * */
+		 * By passing `createIfNone: false`, the extension silently checks for an existing session
+		 * without prompting the user to sign in. The user is only asked to sign in when
+		 * `getOctokit()` is called with `createIfNone: true`.
+		 */
 		const session = await vscode.authentication.getSession(GITHUB_AUTH_PROVIDER_ID, SCOPES, { createIfNone: false });
 
 		if (session) {
 			this.octokit = new Octokit.Octokit({
 				auth: session.accessToken
 			});
+			this._username = session.account.label;
 
 			return;
 		}
 
 		this.octokit = undefined;
+		this._username = undefined;
 	}
 
 	registerListeners(context: vscode.ExtensionContext): void {
@@ -58,6 +71,7 @@ export class Credentials {
 		this.octokit = new Octokit.Octokit({
 			auth: session.accessToken
 		});
+		this._username = session.account.label;
 
 		return this.octokit;
 	}

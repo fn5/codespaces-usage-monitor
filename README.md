@@ -9,6 +9,32 @@ or when you enable the extension.
 Fetches your remaining hours when clicking the statusbar message.
 
 ![alt text](Schermafbeelding%202025-06-08%20003332.png)
+
+## Required Permissions
+
+When you first use this extension, VS Code will ask you to sign in to GitHub and grant the **`read:user`** OAuth scope.
+
+**What the `read:user` scope allows:**
+- Read-only access to your public and private profile information (name, login, etc.)
+
+**What this extension actually does with the permission:**\
+This extension is read-only. It retrieves your GitHub username directly from the VS Code
+authentication session (no profile API call is made), and reads your Codespaces billing usage
+from the GitHub billing API. The access token is stored and managed securely by VS Code's
+built-in authentication system and is never transmitted anywhere other than the GitHub API.
+
+**Note on plan type:**\
+To keep the requested permissions as narrow as possible, this extension does not fetch your
+GitHub plan from the API. Instead, it reads the plan from the `codespaces-usage-monitor.plan`
+VS Code setting (default: `free`). If you are on GitHub Pro, change this setting to `pro` so
+that the correct included-hours quota (180 h/month) is used.
+
+**If the billing API returns an authorization error:**\
+GitHub's billing usage endpoint may require a broader token scope than `read:user` in some
+configurations. If you see a "refresh failed" message in the status bar, revoke the extension's
+token in your [GitHub authorized apps settings](https://github.com/settings/apps/authorizations)
+and re-connect — VS Code will ask for permission again.
+
 ## Known Issues
 Will only work on VS Code 1.100+, because of the reliance on Octokit ESM.\
 If there is demand, I will make it work for versions prior 1.100
